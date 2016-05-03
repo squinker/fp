@@ -70,4 +70,10 @@ class TestCons extends FunSuite with Matchers{
     List.drop( List(1, 2, 3), 0) should equal ( List(1, 2, 3) )
   }
 
+
+  test("Dropwhile will remove even numbers from a list when supplied with the appropriate predicate"){
+
+    List.dropWhile(  List(1, 10, 3, 4, 11, 5), (x:Int) => x > 5) should equal( List(1, 3, 4, 5) )
+  }
+
 }

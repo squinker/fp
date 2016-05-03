@@ -50,6 +50,23 @@ object List {
   }
 
 
+  def dropWhile[A](as: List[A], f: A => Boolean): List[A] = {
+
+
+    def dropWhileHelper[A](as: List[A],f: A => Boolean, acc: List[A]): List[A] = {
+      as match {
+
+        case Nil         => acc
+        case Cons(x, xs) =>
+          if   ( f(x) ) dropWhileHelper(xs, f, acc        )
+          else          dropWhileHelper(xs, f, Cons(x, acc))
+      }
+    }
+
+    dropWhileHelper(as, f, Nil)
+  }
+
+
 
 }
 
