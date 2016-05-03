@@ -33,6 +33,24 @@ object List {
       case Cons(x, xs) => xs
     }
 
+  def setHead[A](as: List[A], newHead: A): List[A] = {
+    as match {
+      case Nil => Cons(newHead, Nil)
+      case _   => Cons(newHead, as)
+    }
+  }
+
+  def drop[A](as: List[A], n: Int): List[A] = {
+    if (n == 0) as
+    else as match {
+        case Nil         => Nil
+        case Cons(x, xs) => drop(xs, n - 1)
+      }
+
+  }
+
+
+
 }
 
 

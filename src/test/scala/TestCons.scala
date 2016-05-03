@@ -5,7 +5,7 @@ import org.scalatest.{Matchers, FunSuite}
 
 class TestCons extends FunSuite with Matchers{
 
-  test("Test matching Cons matches nested Cons operators") {
+  test("matching Cons matches nested Cons operators") {
 
     val result = List(1,2,3,4,5) match {
 
@@ -19,7 +19,7 @@ class TestCons extends FunSuite with Matchers{
     assert( result == 3)
   }
 
-  test("Test matching Cons matches nested Cons operators2") {
+  test("matching Cons matches nested Cons operators2") {
 
     val result = List(1,2,3,4,5) match {
 
@@ -33,7 +33,7 @@ class TestCons extends FunSuite with Matchers{
     assert( result == 15)
   }
 
-  test("Test matching Cons matches nested Cons operators3") {
+  test("matching Cons matches nested Cons operators3") {
 
     val result = List(1,2,3,4,5) match {
 
@@ -47,10 +47,27 @@ class TestCons extends FunSuite with Matchers{
     assert( result == 101)
   }
 
-  test("Test homemade tail method"){
+  test("homemade tail method"){
     List.tail(List(1,2,3,4,5)) should equal( List(2,3,4,5) )
     List.tail( List("one", "two", "three") ) should equal( List("two", "three")  )
     List.tail( Nil ) should equal( Nil  )
+  }
+
+  test("homemade setHead method"){
+    List.setHead( List(2,3,4,5), 1) should equal( List(1,2,3,4,5) )
+    List.setHead( List("two", "three", "four"), "one" ) should equal( List("one", "two", "three", "four") )
+  }
+
+  test("Drop method should return a three element list when the first two elements are dropped from a five-element list"){
+    List.drop( List(1,2,3,4,5), 2 ) should equal (List(3,4,5))
+  }
+
+  test("Drop method should return nil when trying to drop two elements from a one-element list"){
+    List.drop( List(1), 2 ) should equal (Nil)
+  }
+
+  test("Drop method should the complete list when no elements are dropped from it"){
+    List.drop( List(1, 2, 3), 0) should equal ( List(1, 2, 3) )
   }
 
 }
