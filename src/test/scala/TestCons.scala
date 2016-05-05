@@ -73,7 +73,24 @@ class TestCons extends FunSuite with Matchers{
 
   test("Dropwhile will remove even numbers from a list when supplied with the appropriate predicate"){
 
-    List.dropWhile(  List(1, 10, 3, 4, 11, 5), (x:Int) => x > 5) should equal( List(1, 3, 4, 5) )
+    List.dropWhile(  List(1, 10, 3, 4, 11, 5), (x:Int) => x > 5) should equal( List(5, 4, 3, 1) )
+  }
+
+  /*
+  test("Dropwhile2 will remove even numbers from a list when supplied with the appropriate predicate"){
+
+    List.dropWhile2(  List(1, 10, 3, 4, 11, 5), (x:Int) => x > 5) should equal(  List(5, 4, 3, 1) )
+  }
+  */
+
+  test("Dropwhile2 will remove numbers greater than five subsequence from List"){
+
+    List.dropWhile2(  List(6, 7, 8, 10, 3, 4, 11, 5), (x:Int) => x > 5) should equal(  List(3, 4, 11, 5) )
+  }
+
+
+  test("Init returns all but the last element of a list"){
+    List.init( List(1, 2, 3, 4, 5, 10, 4) ) should equal( List(1, 2, 3, 4, 5, 10) )
   }
 
 }

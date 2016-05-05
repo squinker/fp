@@ -4,7 +4,7 @@ sealed trait List[+A]
 
 case object Nil extends List[Nothing]
 
-case class Cons[+A](head: A, tail: List[A]) extends List[A]
+case class  Cons[+A](head: A, tail: List[A]) extends List[A]
 
 object List {
 
@@ -53,7 +53,7 @@ object List {
   def dropWhile[A](as: List[A], f: A => Boolean): List[A] = {
 
 
-    def dropWhileHelper[A](as: List[A],f: A => Boolean, acc: List[A]): List[A] = {
+    def dropWhileHelper[A](as: List[A], f: A => Boolean, acc: List[A]): List[A] = {
       as match {
 
         case Nil         => acc
@@ -67,6 +67,33 @@ object List {
   }
 
 
+
+  def dropWhile2[A](l: List[A], f: A => Boolean): List[A] =
+    l match {
+      case Cons(h,t) if f(h) => dropWhile2(t, f)
+      case _ => l
+    }
+
+
+  def append[A](a1: List[A], a2: List[A]): List[A] =
+
+    a1 match {
+      case Nil => a2
+      case Cons(h,t) => Cons(h, append(t, a2))
+    }
+
+  def init[A](l: List[A]): List[A] = {
+
+
+
+    def initHelper[A](l: List[A], acc: List[A], prev: List[A]): List[A] = {
+      l match {
+        case Nil         => prev
+        case Cons(x, xs) => initHelper(xs, Cons(x, acc), acc )
+      }
+    }
+    initHelper(l, Nil, Nil)
+  }
 
 }
 
