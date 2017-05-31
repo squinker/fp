@@ -27,7 +27,10 @@ object Chapter4 {
     def orElse[B >: A](ob: => Option[B]): Option[B] = this map (value => Some(value)) getOrElse ob
 
 
-    def filter(f: A => Boolean): Option[A] = if(f(this)) this else None
+    def filter(f: A => Boolean): Option[A] = this.flatMap{v =>
+      if( f(v) )this
+      else None
+    }
   }
 
   //sealed trait Option[+]
@@ -42,6 +45,7 @@ object Chapter4 {
 
   def variance(xs: Seq[Double]): Option[Double] = mean(xs).flatMap( m => mean(xs.map(x => math.pow(x-m,2))) )
 
+  def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = a.flatMap(al => b.map(bl => f(al, bl)))
 
 
 

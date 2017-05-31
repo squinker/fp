@@ -80,6 +80,7 @@ object List {
       case Cons(h,t) => Cons(h, append(t, a2))
     }
 
+  /*
   def init[A](l: List[A]): List[A] = {
 
     def initHelper[A](l: List[A], acc: List[A], prev: List[A]): List[A] = {
@@ -99,8 +100,8 @@ object List {
       }
 
     }
+*/
 
-  }
 
 
 }
