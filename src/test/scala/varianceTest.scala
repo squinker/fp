@@ -1,3 +1,4 @@
+import chapter4.Chapter4
 import org.scalatest.{FlatSpec, Matchers}
 
 class varianceTest extends FlatSpec with Matchers{
