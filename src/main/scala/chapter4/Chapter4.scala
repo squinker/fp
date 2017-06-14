@@ -65,19 +65,72 @@ object Chapter4 {
 
 
     }
+
+    def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = {
+
+      a match {
+        case Nil => Some(Nil)
+        case x :: xs => f(x).flatMap(bb => traverse(xs)(f).map(l => bb :: l))
+      }
+    }
+
+    def sequenceUsingTraverse[A](a: List[Option[A]]): Option[List[A]] = {
+      traverse(a)(x => x)
+    }
+
   }
 
-  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = {
 
-    a match {
-      case Nil     => Some(Nil)
-      case x :: xs => f(x).flatMap(bb => traverse(xs)(f).map(l => bb :: l))
+  trait Either[+E, +A] {
+
+    case class Left[+E](value: E) extends Either[E, Nothing]
+
+    case class Right[+A](value: A) extends Either[Nothing, A]
+
+    def map[B](f: A => B): Either[E, B] = this match {
+
+      case Left(e) => Left(e)
+      case Right(a) => Right(f(a))
 
     }
+
+    def flatMap[EE >: E, B](f: A => Either[EE, B]): Either[EE, B] = {
+
+      this match {
+        case Left(e) => Left(e)
+        case Right(a) => f(a)
+      }
+    }
+
+    def orElse[EE >: E,B >: A](b: => Either[EE, B]): Either[EE, B] = {
+
+      this match {
+        case Left(_) => b
+        case Right(_) => this
+      }
+    }
+
+    def map2[EE >: E, B, C](b: Either[EE, B])(f:(A,B) => C): Either[EE, C] = {
+
+      this match {
+        case Left(e) => Left(e)
+        case Right(a) =>
+          b map(bval => f(a,bval) )
+
+
+      }
+    }
+
+    def map2usingFor[EE >: E, B, C](b: Either[EE, B])(f:(A,B) => C): Either[EE, C] = {
+
+      for {
+        a <- this
+        b1 <- b
+      } yield f(a, b1)
+
+    }
+
   }
 
-  def sequenceUsingTraverse[A](a: List[Option[A]]): Option[List[A]] = {
-    traverse(a)(x => x)
-  }
 
 }
