@@ -77,16 +77,40 @@ object Chapter4 {
     def sequenceUsingTraverse[A](a: List[Option[A]]): Option[List[A]] = {
       traverse(a)(x => x)
     }
-
   }
 
 
+  object Either {
+
+    def sequence[E, A](es: List[Either[E, A]]): Either[E, List[A]] = {
+      es match {
+        case Nil => Right(Nil)
+        case x :: xs => x flatMap (a => sequence(xs) map (l => a :: l))
+      }
+    }
+
+
+    def traverse[E, A, B](as: List[A])(f: A => Either[E, B]): Either[E, List[B]] = {
+      as match {
+        case Nil => Right(Nil)
+        case x :: xs => f(x) flatMap (a => traverse(xs)(f) map (v => a :: v))
+      }
+    }
+
+
+    def traverseUsingMap2[E, A, B](as: List[A])(f: A => Either[E, B]): Either[E, List[B]] = {
+      as.foldRight[Either[E, List[B]]](Right(Nil))((a, b) => f(a).map2(b)((a, b) => a :: b))
+    }
+
+    def sequenceUsingTraverse[E, A](as: List[Either[E, A]]): Either[E, List[A]] = {
+      traverseUsingMap2(as)((a) => a)
+    }
+
+
+
+  }
+
   trait Either[+E, +A] {
-
-    case class Left[+E](value: E) extends Either[E, Nothing]
-
-    case class Right[+A](value: A) extends Either[Nothing, A]
-
     def map[B](f: A => B): Either[E, B] = this match {
 
       case Left(e) => Left(e)
@@ -102,7 +126,7 @@ object Chapter4 {
       }
     }
 
-    def orElse[EE >: E,B >: A](b: => Either[EE, B]): Either[EE, B] = {
+    def orElse[EE >: E, B >: A](b: => Either[EE, B]): Either[EE, B] = {
 
       this match {
         case Left(_) => b
@@ -110,18 +134,18 @@ object Chapter4 {
       }
     }
 
-    def map2[EE >: E, B, C](b: Either[EE, B])(f:(A,B) => C): Either[EE, C] = {
+    def map2[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C] = {
 
       this match {
         case Left(e) => Left(e)
         case Right(a) =>
-          b map(bval => f(a,bval) )
+          b map (bval => f(a, bval))
 
 
       }
     }
 
-    def map2usingFor[EE >: E, B, C](b: Either[EE, B])(f:(A,B) => C): Either[EE, C] = {
+    def map2usingFor[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C] = {
 
       for {
         a <- this
@@ -130,7 +154,12 @@ object Chapter4 {
 
     }
 
+
   }
+
+  case class Left[+E](value: E) extends Either[E, Nothing]
+
+  case class Right[+A](value: A) extends Either[Nothing, A]
 
 
 }

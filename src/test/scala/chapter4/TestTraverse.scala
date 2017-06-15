@@ -27,4 +27,15 @@ class TestTraverse extends FlatSpec with Matchers {
     Chapter4.Option.traverse[String, Int](List("1", "2", "DEADBEEF"))(strToInt) shouldBe Chapter4.None
   }
 
+  // Move to Either test
+  it should "sequence should return a list of rights" in {
+    val result = Chapter4.Either.sequence(List(Chapter4.Right("one"), Chapter4.Right("two"), Chapter4.Right("three")))
+    result shouldBe Chapter4.Right(List("one", "two", "three"))
+  }
+
+  it should "sequence should return the first left" in {
+    val result = Chapter4.Either.sequence(List(Chapter4.Right("one"), Chapter4.Left("two"), Chapter4.Right("three"),Chapter4.Left("four")))
+    result shouldBe Chapter4.Left("two")
+  }
+
 }
