@@ -134,12 +134,20 @@ object Chapter4 {
       }
     }
 
-    def map2[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C] = {
+    type validation[EE, C] = Either[List[EE], C]
+
+    def map2[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): validation[EE, C] = {
 
       this match {
-        case Left(e) => Left(e)
+        case Left(e) => Left(List(e))
         case Right(a) =>
-          b map (bval => f(a, bval))
+          //b map (bval => f(a, bval))
+
+          b match {
+            case Left(e)   => Left(List(e))
+            case Right(v)  => Right( f(a,v) )
+
+          }
 
 
       }
@@ -158,8 +166,24 @@ object Chapter4 {
   }
 
   case class Left[+E](value: E) extends Either[E, Nothing]
-
   case class Right[+A](value: A) extends Either[Nothing, A]
 
 
+  case class Person(name: Name, age: Age)
+  sealed class Name(val value: String)
+  sealed class Age(val value: Int)
+
+
+  type validationErrors = List[String]
+
+  def mkName(name: String): Either[String, Name] =
+    if (name == "" || name == null) Left("Name is empty")
+    else Right(new Name(name))
+
+  def mkAge(age: Int): Either[String, Age] =
+    if(age < 0) Left("Age is out of range")
+    else Right(new Age(age))
+
+  def mkPerson(name: String, age: Int): Either[validationErrors , Person] =
+    mkName(name).map2(mkAge(age))(Person(_, _))
 }
