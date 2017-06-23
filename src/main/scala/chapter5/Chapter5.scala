@@ -1,18 +1,35 @@
 package chapter5
 
+
+
 object Chapter5 {
 
   sealed trait Stream[+A] {
 
     def toList: List[A] = this match {
 
-      case Empty       => Nil
+      case Empty => Nil
       case Cons(h, tl) => h() :: tl().toList
 
     }
 
+
+    def take(n: Int): Stream[A] = this match {
+      case Cons(h, tl) if n > 1 => Stream.cons(h(), tl().take(n - 1))
+      case Cons(h, _)  if n == 1 => Stream.cons(h(), Stream.empty)
+      case _ => Stream.empty
+
+    }
+
+    def drop(n: Int): Stream[A] = this match {
+      case Cons(_, t) if n > 0 => t().drop(n-1)
+      case _                   => this
+    }
+
   }
+
   case object Empty extends Stream[Nothing]
+
   case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
 
 
@@ -27,7 +44,7 @@ object Chapter5 {
     def empty[A]: Stream[A] = Empty
 
     def apply[A](as: A*): Stream[A] =
-      if(as.isEmpty) empty else cons(as.head, apply(as.tail: _*))
+      if (as.isEmpty) empty else cons(as.head, apply(as.tail: _*))
   }
 
 }

@@ -98,13 +98,17 @@ object Chapter4 {
     }
 
 
+    /*
     def traverseUsingMap2[E, A, B](as: List[A])(f: A => Either[E, B]): Either[E, List[B]] = {
       as.foldRight[Either[E, List[B]]](Right(Nil))((a, b) => f(a).map2(b)((a, b) => a :: b))
     }
+    */
 
+    /*
     def sequenceUsingTraverse[E, A](as: List[Either[E, A]]): Either[E, List[A]] = {
       traverseUsingMap2(as)((a) => a)
     }
+    */
 
 
 
