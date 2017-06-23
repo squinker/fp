@@ -26,6 +26,28 @@ object Chapter5 {
       case _                   => this
     }
 
+    def takeWhile(f: A => Boolean): Stream[A] = this match {
+      case Cons(h,t) if f(h()) => Stream.cons(h(), t() takeWhile f)
+      case _ => Stream.empty
+    }
+
+    def foldRight[B](z: => B)(f: (A, => B) => B): B =
+      this match {
+        case Cons(h, t) => f(h(), t().foldRight(z)(f))
+        case _          => z
+      }
+
+    def forall(f: A => Boolean): Boolean =  {
+     foldRight(true)((a,b) => f(a) && b )
+    }
+
+    def takeWhile2(f: A => Boolean): Stream[A] = {
+
+
+      foldRight(Stream.empty[A])( (a,b) => if(f(a)) Stream.cons(a, b) else Stream.empty)
+    }
+
+
   }
 
   case object Empty extends Stream[Nothing]
