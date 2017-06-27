@@ -42,9 +42,21 @@ object Chapter5 {
     }
 
     def takeWhile2(f: A => Boolean): Stream[A] = {
-
-
       foldRight(Stream.empty[A])( (a,b) => if(f(a)) Stream.cons(a, b) else Stream.empty)
+    }
+
+    def headOption: Option[A] = {
+
+      foldRight(None: Option[A])((h, _) => Some(h))
+
+    }
+
+    def mapUsingFoldright[B](f: A => B): Stream[B] = {
+      foldRight(Stream.empty[B])((a,b) => Stream.cons(f(a),b))
+    }
+
+    def filterUsingFoldRight(p: A => Boolean): Stream[A] = {
+      foldRight(Stream.empty[A])((a,b) => if(p(a)) Stream.cons(a,b) else b)
     }
 
 
