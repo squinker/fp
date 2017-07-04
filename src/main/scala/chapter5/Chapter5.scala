@@ -114,9 +114,11 @@ object Chapter5 {
 
   def fromUsingUnfold(n: Int): Stream[Int] = unfold(n)(s => Some((n,n+1)))
 
-  def constantUsingUnfold[A](a: A): Stream[A] = {
+  def constantUsingUnfold[A](a: A): Stream[A] = unfold(a)(_ =>  Some((a,a)) )
 
-    unfold(a)(s =>  Some((a,a)) )
+  def onesUsingUnfold(): Stream[Int] = unfold(1)(_ => Some(1,1))
 
-  }
+
+
+  
 }
