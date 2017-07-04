@@ -86,6 +86,17 @@ object Chapter5 {
       )
     }
 
+    def takeWhileUsingUnfold(f: A => Boolean): Stream[A] = {
+
+      unfold((this))(s => s match {
+
+        case Cons(h, tl) => if(f(h)) Some( h(),tl() )  else None
+        case _           => None
+          
+      })
+
+    }
+
   }
 
   case object Empty extends Stream[Nothing]
