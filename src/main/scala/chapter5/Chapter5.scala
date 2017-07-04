@@ -61,13 +61,19 @@ object Chapter5 {
       foldRight(s)((a, b) => Stream.cons(a, b))
     }
 
-    def flatMap[B](f: A => Stream[B]):Stream[B] = {
+    def flatMap[B](f: A => Stream[B]): Stream[B] = {
 
-      foldRight(Stream.empty[B])( (h,t) => f(h) appendUsingFoldright(t))
+      foldRight(Stream.empty[B])((h, t) => f(h) appendUsingFoldright (t))
 
     }
 
-
+    def mapUsingUnfold[B](f: A => B): Stream[B] = {
+      unfold(this)(s => s match {
+        case Stream.empty => None
+        case Cons(h, tl)  => Some((f(h), tl()))
+      }
+      )
+    }
   }
 
   case object Empty extends Stream[Nothing]
@@ -95,30 +101,29 @@ object Chapter5 {
     tail
   }
 
-  def from(n: Int): Stream[Int] = Stream.cons(n, from(n+1))
+  def from(n: Int): Stream[Int] = Stream.cons(n, from(n + 1))
 
-  val  fibs:Stream[Int] = {
-    def go(f0: Int, f1: Int): Stream[Int] = Stream.cons(f0, go(f0, f0+f1))
-    go(0,1)
+  val fibs: Stream[Int] = {
+    def go(f0: Int, f1: Int): Stream[Int] = Stream.cons(f0, go(f0, f0 + f1))
+
+    go(0, 1)
   }
 
-  def unfold[A, S](z: S)(f: S => Option[ (A,S) ] ): Stream[A] = {
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = {
 
     f(z) match {
-      case None        => Stream.empty[A]
-      case Some((a,s)) => Stream.cons(a, unfold(s)(f))
+      case None => Stream.empty[A]
+      case Some((a, s)) => Stream.cons(a, unfold(s)(f))
     }
   }
 
-  def fibsUsingUnfold():Stream[Int] = unfold((0,1))(s => Some( (s._1,(s._1,s._1 + s._2)) ))
+  def fibsUsingUnfold(): Stream[Int] = unfold((0, 1))(s => Some((s._1, (s._1, s._1 + s._2))))
 
-  def fromUsingUnfold(n: Int): Stream[Int] = unfold(n)(s => Some((n,n+1)))
+  def fromUsingUnfold(n: Int): Stream[Int] = unfold(n)(s => Some((n, n + 1)))
 
-  def constantUsingUnfold[A](a: A): Stream[A] = unfold(a)(_ =>  Some((a,a)) )
+  def constantUsingUnfold[A](a: A): Stream[A] = unfold(a)(_ => Some((a, a)))
 
-  def onesUsingUnfold(): Stream[Int] = unfold(1)(_ => Some(1,1))
+  def onesUsingUnfold(): Stream[Int] = unfold(1)(_ => Some(1, 1))
 
 
-
-  
 }
