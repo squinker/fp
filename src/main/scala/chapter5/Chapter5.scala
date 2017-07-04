@@ -74,6 +74,18 @@ object Chapter5 {
       }
       )
     }
+
+    def takeUsingUnfold(n: Int): Stream[A] = {
+      unfold((n,this))(s =>
+
+        if(s._1 < 1) None
+        else s._2 match {
+          case Cons(h, tl) => Some(h(), (n-1,tl()) )
+          case _           => None
+        }
+      )
+    }
+
   }
 
   case object Empty extends Stream[Nothing]
