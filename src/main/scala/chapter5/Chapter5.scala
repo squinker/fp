@@ -74,7 +74,6 @@ object Chapter5 {
 
   case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
 
-
   object Stream {
     def cons[A](hd: => A, tl: => Stream[A]): Stream[A] = {
       lazy val head = hd
@@ -89,8 +88,6 @@ object Chapter5 {
       if (as.isEmpty) empty else cons(as.head, apply(as.tail: _*))
   }
 
-
-
   def constant[A](a: A): Stream[A] = Stream.cons(a, constant(a))
 
   def constant2[A](a: A): Stream[A] = {
@@ -100,14 +97,10 @@ object Chapter5 {
 
   def from(n: Int): Stream[Int] = Stream.cons(n, from(n+1))
 
-
   val  fibs:Stream[Int] = {
-
     def go(f0: Int, f1: Int): Stream[Int] = Stream.cons(f0, go(f0, f0+f1))
-
     go(0,1)
   }
-
 
   def unfold[A, S](z: S)(f: S => Option[ (A,S) ] ): Stream[A] = {
 
@@ -117,12 +110,8 @@ object Chapter5 {
     }
   }
 
+  def fibsUsingUnfold():Stream[Int] = unfold((0,1))(s => Some( (s._1,(s._1,s._1 + s._2)) ))
 
-  def fibsUsingUnfold():Stream[Int] = {
-
-
-    unfold((0,1))(s => Some( (s._1,(s._1,s._1 + s._2)) ))
-
-  }
+  def fromUsingUnfold(n: Int): Stream[Int] = unfold(n)(s => Some((n,n+1)))
 
 }
