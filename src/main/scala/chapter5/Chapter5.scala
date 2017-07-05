@@ -88,11 +88,20 @@ object Chapter5 {
 
     def takeWhileUsingUnfold(f: A => Boolean): Stream[A] = {
 
-      unfold((this))(s => s match {
-
+      unfold(this)(s => s match {
         case Cons(h, tl) => if(f(h)) Some( h(),tl() )  else None
         case _           => None
-          
+      })
+    }
+
+
+    def zipWithUsingUnfold[B,C](s2: Stream[B])(f: (A,B) => C): Stream[C] = {
+
+      unfold((this,s2))(s => s match {
+
+        case (Cons(h1, tl1),Cons(h2, tl2)) => Some( (f(h1, h2 ),(tl1(),tl2())) )
+        case _ => None
+
       })
 
     }
