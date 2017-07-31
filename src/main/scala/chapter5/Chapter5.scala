@@ -8,7 +8,7 @@ object Chapter5 {
   sealed trait Stream[+A] {
 
     def exists(p: A => Boolean): Boolean = this match {
-      case Cons(h, tl) => p(h) || tl().exists(p)
+      case Cons(h, tl) => p(h()) || tl().exists(p)
       case _           => false
     }
 
@@ -140,7 +140,7 @@ object Chapter5 {
     def mapUsingUnfold[B](f: A => B): Stream[B] = {
       unfold(this)(s => s match {
         case Stream.empty => None
-        case Cons(h, tl) => Some((f(h), tl()))
+        case Cons(h, tl) => Some((f(h()), tl()))
       }
       )
     }
@@ -159,7 +159,7 @@ object Chapter5 {
     def takeWhileUsingUnfold(f: A => Boolean): Stream[A] = {
 
       unfold(this)(s => s match {
-        case Cons(h, tl) => if (f(h)) Some(h(), tl()) else None
+        case Cons(h, tl) => if (f(h())) Some(h(), tl()) else None
         case _ => None
       })
     }
@@ -168,7 +168,7 @@ object Chapter5 {
     def zipWithUsingUnfold[B, C](s2: Stream[B])(f: (A, B) => C): Stream[C] = {
 
       unfold((this, s2))(s => s match {
-        case (Cons(h1, tl1), Cons(h2, tl2)) => Some((f(h1, h2), (tl1(), tl2())))
+        case (Cons(h1, tl1), Cons(h2, tl2)) => Some((f(h1(), h2()), (tl1(), tl2())))
         case _ => None
       })
     }
