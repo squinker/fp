@@ -12,30 +12,33 @@ object Chapter5 {
       case _           => false
     }
 
-    def containsSubsequence[A](s2: Stream[A]): Boolean = {
+    /*
+  def containsSubsequence[A](s2: Stream[A]): Boolean = {
 
-      def matchStreams(s1: Stream[A], subSeq: Stream[A]): Boolean = {
+    def matchStreams(s1: Stream[A], subSeq: Stream[A]): Boolean = {
 
-        s1 match {
+      s1 match {
 
-          case Cons(s1h, s1tl) =>
-            subSeq match {
+        case Cons(s1h, s1tl) =>
+          subSeq match {
 
-              case Cons(subSeqH, subSeqtl) =>
+            case Cons(subSeqH, subSeqtl) =>
 
-                if (s1h() == subSeqH()) matchStreams(s1tl(), subSeqtl())
-                else matchStreams(s1tl(), subSeq)
+              if (s1h() == subSeqH()) matchStreams(s1tl(), subSeqtl())
+              else matchStreams(s1tl(), subSeq)
 
-              case _ => true
-            }
-          case _ => false
+            case _ => true
+          }
+        case _ => false
 
-        }
       }
-      matchStreams(this, s2)
     }
+    matchStreams(this, s2)
+    }
+    */
 
 
+    /*
     def containsSubsequenceUsingZipall[A](s2: Stream[A]): Boolean = {
 
       def helper(str: Stream[A], subseq: Stream[A]): Boolean = {
@@ -48,6 +51,7 @@ object Chapter5 {
       }
       helper(this, s2)
     }
+    */
 
 
     // eg stream1.startsWith(Stream(1,2,3)
@@ -137,6 +141,7 @@ object Chapter5 {
       foldRight(Stream.empty[B])((h, t) => f(h) appendUsingFoldright (t))
     }
 
+    /*
     def mapUsingUnfold[B](f: A => B): Stream[B] = {
       unfold(this)(s => s match {
         case Stream.empty => None
@@ -144,6 +149,7 @@ object Chapter5 {
       }
       )
     }
+    */
 
     def takeUsingUnfold(n: Int): Stream[A] = {
       unfold((n, this))(s =>
@@ -173,13 +179,14 @@ object Chapter5 {
       })
     }
 
+
     def zipAll[B](s2: Stream[B]): Stream[(Option[A], Option[B])] = {
 
       unfold((this, s2))(s => s match {
 
         case (Cons(h1, tl1), Cons(h2, tl2)) => Some((Some(h1()), Some(h2())), (tl1(), tl2()))
-        case (Stream.empty, Cons(h2, tl2)) => Some((None, Some(h2())), (Stream.empty, tl2()))
-        case (Cons(h1, tl1), Stream.empty) => Some((Some(h1()), None), (tl1(), Stream.empty))
+        case (Empty, Cons(h2, tl2)) => Some((None, Some(h2())), (Stream.empty, tl2()))
+        case (Cons(h1, tl1), Empty) => Some((Some(h1()), None), (tl1(), Stream.empty))
         case _ => None
       })
     }

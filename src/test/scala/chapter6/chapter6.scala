@@ -97,12 +97,12 @@ object chapter6 {
 
   def both[A, B](ra: Rand[A], rb: Rand[B]): Rand[(A, B)] = map2(ra, rb)((_, _))
 
-  def unit[A](a: A): Rand[A] = rng => (a, rng)
+  //def unit[A](a: A): Rand[A] = rng => (a, rng)
 
   def unitGeneral[A, S](a: A): S => (A, S) = s => (a, s)
 
-  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
-    fs.foldRight(unit(List[A]()))((f, acc) => map2(f, acc)(_ :: _))
+  //def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
+  //  fs.foldRight(unit(List[A]()))((f, acc) => map2(f, acc)(_ :: _))
 
   def flatMap[A, B](f: Rand[A])(g: A => Rand[B]): Rand[B] = {
 
@@ -115,43 +115,83 @@ object chapter6 {
 
   }
 
-  def mapUsingFlatmap[A, B](s: Rand[A])(f: A => B): Rand[B] =
-    flatMap(s)(a => unit(f(a)))
+  //def mapUsingFlatmap[A, B](s: Rand[A])(f: A => B): Rand[B] =
+  //  flatMap(s)(a => unit(f(a)))
 
 
   def map2UsingFlatmap[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = {
-
-
-    //flatMap(ra)(a => flatMap(rb)(b => unit(f(a,b))))
     flatMap(ra)(a => map(rb)(b => f(a, b)))
-
   }
 
 
   //type State[S,+A] = S => (A,S)
-  case class State[S, +A](run: S => (A, S)){
-    def map[S, A, B](a: S => (A, S))(f: A => B): S => (B, S) = {
-      s => {
+  case class State[S, +A](run: S => (A, S)) {
 
-        val (a1, s2) = a(s)
-        (f(a1), s2)
-      }
-    }
+    def map[B](f: A => B): State[S, B] =
+      flatMap(a => State.unit(f(a)))
 
-    def map2[A,B,C,S](ra: S => (A,S), rb: S => (B, S))(f: (A, B) => C): S => (C, S) = {
+    def map2[B, C](sb: State[S, B])(f: (A, B) => C): State[S, C] = flatMap(a => sb.map(b => f(a, b)))
 
-      s => {
-        val (a, s2) = ra(s)
-        val (b, s3) = rb(s2)
-
-        (f(a,b),s3)
-      }
-    }
-    
+    def flatMap[B](f: A => State[S, B]): State[S, B] = State(s => {
+      val (a, s1) = run(s)
+      f(a).run(s1)
+    })
   }
 
   object State {
-    def unit[A, S](a: A): S => (A, S) = s => (a, s)
+    def unit[S, A](a: A): State[S, A] = State(s => (a, s))
+
+    def sequence[S, A](ls: List[State[S, A]]): State[S, List[A]] = {
+      ls.foldRight(unit[S, List[A]](List()))((f, acc) => f.map2(acc)(_ :: _))
+    }
+
+    def modify[S](f: S => S): State[S, Unit] = for {
+      s <- get // Gets the current state and assigns it to `s`.
+      _ <- set(f(s)) // Sets the new state to `f` applied to `s`.
+    } yield ()
+
+    def get[S]: State[S, S] = State(s => (s, s))
+
+    def set[S](s: S): State[S, Unit] = State(_ => ((), s))
   }
+
+
+  //6.11
+
+  sealed trait Input
+
+  //define functions corresponsing to these inouts
+  case object Coin extends Input
+
+  case object Turn extends Input
+
+  case class Machine(locked: Boolean, candies: Int, coins: Int)
+
+  /*
+  {
+
+
+    def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = { State(s => {
+
+
+
+
+    }
+
+    /*
+    def simulateMachineWithFold(inputs: List[Input]): State[Machine, (Int, Int)] = {
+
+
+    inputs.fold(State.unit[Machine,(Int, Int)](this.coins, this.candies))
+
+    }
+    */
+  }
+
+
+  }
+
+  val res: State[Machine, (Int, Int)] = Machine(true, 10, 0).simulateMachine(List(Coin, Turn))
+*/
 
 }
