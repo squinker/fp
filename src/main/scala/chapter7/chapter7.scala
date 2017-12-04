@@ -1,6 +1,6 @@
 package chapter7
 
-import java.util.concurrent.{Callable, ExecutorService, Future}
+import java.util.concurrent.{Callable, CountDownLatch, ExecutorService, Future}
 
 import scala.concurrent.duration.TimeUnit
 
@@ -8,9 +8,23 @@ object chapter7 {
 
 
 
-  type Par[A] = ExecutorService => Future[A]
+  type Par[+A] = ExecutorService => Future[A]
 
   object Par {
+
+    def run[A](es: ExecutorService)(p: Par[A]): A = {
+      val ref = new java.util.concurrent.atomic.AtomicReference[A] // A mutable, threadsafe reference, to use for storing the result
+      val latch = new CountDownLatch(1) // A latch which, when decremented, implies that `ref` has the result
+      p(es) { a => ref.set(a); latch.countDown } // Asynchronously set the result, and decrement the latch
+      latch.await // Block until the `latch.countDown` is invoked asynchronously
+      ref.get // Once we've passed the latch, we know `ref` has been set, and return its value
+    }
+
+    def flatMap[A,B](p: Par[A])(f: A => Par[B]): Par[B] =
+      es => new Future[B] {
+        def apply(cb: B => Unit): Unit =
+          p(es)(a => f(a)(es)(cb))
+      }
 
     def unit[A](a: A): Par[A] = (es: ExecutorService) => UnitFuture(a)
 
@@ -43,6 +57,7 @@ object chapter7 {
       ps.foldRight[Par[List[A]]](unit(List()))((a, b) => map2(a, b)(_ :: _))
     }
 
+
     def parMap[A, B](ps: List[A])(f: A => B): Par[List[B]] = fork {
       val fbs: List[Par[B]] = ps.map(asyncF(f))
       sequence(fbs)
@@ -66,22 +81,10 @@ object chapter7 {
     def map3[A,B,C,D](fa: => Par[A], fb: => Par[B], fc: => Par[C])(f: (A, B, C) => D): Par[D] = {
 
       val m: Par[(C) => D] = map2(fa, fb)((a, b) => (c: C) => f(a, b, c))
-
-
-
       map2( map2(fa, fb)((a, b) => (c: C) => f(a, b, c)), fc)((e,f) => e(f) )
 
   }
-
   def run(nums: List[Int]) = Par.parSum(nums)
-
   def sumParagraphs(paras: List[String]) = Par.totalWordsAcrossAllParagraphsPar(paras)
-
-
-
-
-
-
-}
-
+  }
 }
