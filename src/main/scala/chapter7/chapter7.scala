@@ -8,10 +8,11 @@ object chapter7 {
 
 
 
-  type Par[+A] = ExecutorService => Future[A]
+  type Par[A] = ExecutorService => Future[A]
 
   object Par {
 
+    /*
     def run[A](es: ExecutorService)(p: Par[A]): A = {
       val ref = new java.util.concurrent.atomic.AtomicReference[A] // A mutable, threadsafe reference, to use for storing the result
       val latch = new CountDownLatch(1) // A latch which, when decremented, implies that `ref` has the result
@@ -19,13 +20,16 @@ object chapter7 {
       latch.await // Block until the `latch.countDown` is invoked asynchronously
       ref.get // Once we've passed the latch, we know `ref` has been set, and return its value
     }
+*/
 
+    /*
     def flatMap[A,B](p: Par[A])(f: A => Par[B]): Par[B] =
       es => new Future[B] {
         def apply(cb: B => Unit): Unit =
           p(es)(a => f(a)(es)(cb))
       }
 
+*/
     def unit[A](a: A): Par[A] = (es: ExecutorService) => UnitFuture(a)
 
     private case class UnitFuture[A](get: A) extends Future[A] {

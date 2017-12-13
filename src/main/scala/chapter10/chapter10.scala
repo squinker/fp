@@ -198,6 +198,17 @@ object chapter10 {
 
   }
 
+  object IndexedSeqFoldable extends Foldable[IndexedSeq] {
+    override def foldRight[A, B](as: IndexedSeq[A])(z: B)(f: (A, B) => B): B =
+      as.foldRight(z)(f)
+
+    override def concatenate[A](as: IndexedSeq[A])(m: Monoid[A]): A = foldLeft(as)(m.zero)(m.op)
+
+    override def foldLeft[A, B](as: IndexedSeq[A])(z: B)(f: (B, A) => B): B = as.foldLeft(z)(f)
+
+    override def foldMap[A, B](as: IndexedSeq[A])(f: A => B)(mb: Monoid[B]): B = foldLeft(as)(mb.zero)((a,b)=> mb.op(a, f(b)))
+  }
+
 
 
   sealed trait Tree[+A]
@@ -206,7 +217,6 @@ object chapter10 {
   case class Branch[A](left: Tree[A], right: Tree[A]) extends Tree[A]
 
   object TreeFoldable extends Foldable[Tree] {
-
 
     override def foldMap[A,B](as: Tree[A])(f: A => B)(mb: Monoid[B]): B =
       as match {
@@ -217,18 +227,64 @@ object chapter10 {
 
     override def foldRight[A, B](as: Tree[A])(z: B)(f: (A, B) => B): B =
       as match {
-        case Leaf(v) => f(v)
+        case Leaf(v) => f(v, z)
         case Branch(left, right) => foldRight(left)(foldRight(right)(z)(f))(f)
       }
+
+    override def foldLeft[A, B](as: Tree[A])(z: B)(f: (B, A) => B): B =
+      as match {
+        case Leaf(v) => f(z, v)
+        case Branch(left, right) => foldLeft(right)(foldLeft(left)(z)(f))(f)
+      }
+  }
+
+
+
+  def productMonoid[A,B](A: Monoid[A], B: Monoid[B]): Monoid[(A, B)] = {
+
+    new  Monoid[(A, B)] {
+      override def op(a1: (A, B), a2: (A, B)): (A, B) = (A.op(a1._1, a2._1), B.op(a1._2, a2._2))
+
+      override def zero: (A, B) = (A.zero, B.zero)
+    }
+  }
+
+  def functionMonoid[A,B](B: Monoid[B]): Monoid[A => B] = {
+      new Monoid[A => B] {
+        override def op(a1: A => B, a2: A => B): A => B  = x => B.op(a1(x), a2(x))
+
+        override def zero: A => B = x => B.zero
+      }
+  }
+
+
+  // 10.18
+
+  def mapMergeMonoid[K, V](V: Monoid[V]): Monoid[Map[K, V]] = {
+    new Monoid[Map[K, V]] {
+
+      def zero = Map[K, V]()
+      def op(a: Map[K, V], b: Map[K, V]) =
+        (a.keySet ++ b.keySet).foldLeft(zero) { (acc, k) =>
+          acc.updated(k, V.op(a.getOrElse(k, V.zero),
+                              b.getOrElse(k, V.zero)))
+        }
+    }
+  }
+
+
+  val seq = IndexedSeq("one", "two", "two", "three", "three", "three", "four", "four", "four", "four")
+
+  def bag[A](as: IndexedSeq[A]): Map[A, Int] = {
+
+     IndexedSeqFoldable.foldMap(as)(a => Map(a -> 1))(mapMergeMonoid(intAddition))
 
   }
 
 
 
 
-
-
-
+  val res = bag(IndexedSeq("one", "two", "three", "three"))
 }
 
 
