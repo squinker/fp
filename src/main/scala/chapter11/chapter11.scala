@@ -5,56 +5,46 @@ import chapter7FromWeb.Nonblocking._
 object chapter11 {
 
   trait Functor[F[_]] {
-    def map[A,B](fa: F[A])(f: A => B): F[B]
+    def map[A, B](fa: F[A])(f: A => B): F[B]
   }
 
-  trait Monad[F[_]] extends Functor[F]{
+  trait Monad[F[_]] extends Functor[F] {
 
     def unit[A](a: => A): F[A]
-    def flatMap[A, B](ma: F[A])(f: A => F[B]): F[B]
-    def map[A,B](ma: F[A])(f: A => B): F[B] = {
-      flatMap(ma)( a =>  unit(f(a)) )
-    }
 
+    def flatMap[A, B](ma: F[A])(f: A => F[B]): F[B]
+
+    def map[A, B](ma: F[A])(f: A => B): F[B] = {
+      flatMap(ma)(a => unit(f(a)))
+    }
 
     def map2[A, B, C](ma: F[A], mb: F[B])(f: (A, B) => C): F[C] = flatMap(ma)(a => map(mb)(b => f(a, b)))
 
-
     def sequence[A](lma: List[F[A]]): F[List[A]] = {
-
-      /*
-      lma match {
-        case Nil => unit(Nil)
-
-        case x :: xs =>
-          flatMap(x)( a => map( sequence(xs) )(l => a :: l) )
-      }
-      */
-
-      lma.foldRight( unit(List[A]()) )( (a,b) => map2(a, b)(_ :: _ ) )
-
+      lma.foldRight(unit(List[A]()))((a, b) => map2(a, b)(_ :: _))
     }
 
     def traverse[A, B](la: List[A])(f: A => F[B]): F[List[B]] = {
+      la.foldRight(unit(List[B]()))((a, b) => map2(f(a), b)(_ :: _))
+    }
 
-      /*
-      la match {
-        case Nil =>
-           unit(Nil)
-        case x :: xs =>
-          flatMap( f(x) )(a => map(traverse(xs)(f))(l => a :: l) )
+    def replicateM[A](n: Int, ma: F[A]): F[List[A]] = sequence(List.fill(n)(ma))
+
+    def filterM[A](ms: List[A])(f: A => F[Boolean]): F[List[A]] = {
+
+      ms match {
+        case Nil => unit(Nil)
+        case h :: t =>
+
+          flatMap( f(h))(res =>  map( filterM(t)(f) )(l => if(res) h :: l else   l) )
       }
-      */
-
-      la.foldRight(unit(List[B]()))((a, b ) => map2(f(a), b)(_ :: _ ))
-
     }
   }
-
 
 
   object ParMonad extends Monad[Par] {
     override def unit[A](a: => A): Par[A] = Par.unit(a)
+
     override def flatMap[A, B](ma: Par[A])(f: A => Par[B]): Par[B] = Par.flatMap(ma)(f)
   }
 
@@ -80,8 +70,6 @@ object chapter11 {
     override def flatMap[A, B](ma: State[A, B])(f: A => State[B]): State[B] = ???
   }
   */
-
-
 
 
 }
