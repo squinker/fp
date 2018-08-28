@@ -1,5 +1,6 @@
 package chapter11
 
+import chapter6.chapter6.State
 import chapter7FromWeb.Nonblocking._
 
 object chapter11 {
@@ -39,8 +40,17 @@ object chapter11 {
           flatMap( f(h))(res =>  map( filterM(t)(f) )(l => if(res) h :: l else   l) )
       }
     }
-  }
 
+    def compose[A,B,C](f: A => F[B], g: B => F[C]): A => F[C] = a => flatMap( f(a) )(g)
+
+    def flatMapUsingCompose[A, B](ma: F[A])(f: A => F[B]): F[B] = compose[Unit, A, B](_ => ma, f)(())
+
+    def join[A](mma: F[F[A]]): F[A] = flatMap(mma)(m => m)
+
+    def flatMapInTermsOfJoinAndMap[A, B](ma: F[A])(f: A => F[B]): F[B] = join(map(ma)(a => f(a)))
+
+
+  }
 
   object ParMonad extends Monad[Par] {
     override def unit[A](a: => A): Par[A] = Par.unit(a)
@@ -61,15 +71,46 @@ object chapter11 {
   }
 
 
-  /*
-  import chapter6.chapter6.State
+  case class Id[A](value: A) {
 
-  object StateMonad extends Monad[State[_, _]] {
-     def unit[A, B](a: => A): State[A, B] = ???
+    def map[B](f: A => B): B = f(value)
 
-    override def flatMap[A, B](ma: State[A, B])(f: A => State[B]): State[B] = ???
+    def flatMap[F[_], B](f: A => F[B]): F[B] = f(value)
   }
-  */
 
+
+  object Id {
+    val idMonad = new Monad[Id] {
+      override def unit[A](a: => A): Id[A] = Id(a)
+
+      override def flatMap[A, B](ma: Id[A])(f: A => Id[B]): Id[B] = ma flatMap(f)
+    }
+  }
+
+
+  def stateMonad[S] = new Monad[ ({type f[x] = State[S,x]})#f ] {
+    def unit[A](a: => A): State[S, A] = State(s => (a, s))
+    def flatMap[A, B](st: State[S, A])(f: A => State[S, B]) = st.flatMap[B](f)
+
+    def replicateM[A](n: Int, ma: Id[A]): Id[List[A]] = ???
+  }
+
+  case class Reader[R, A](run: R => A)
+
+  object Reader {
+    def readerMonad[R] = new Monad[({type f[x] = Reader[R, x]})#f] {
+
+      def unit[A](a: => A): Reader[R, A] = Reader(_ =>  a)
+      def flatMap[A, B](st : Reader[R, A])(f: A => Reader[R, B]): Reader[R, B]
+        = Reader(r => f( st.run(r) ).run(r) )
+
+    }
+  }
+  // what is action of flatmap?
+  // What meaning does it give to monadic functions like sequence join and repM?
+  // What meaning does it give to the monad laws?
+
+
+  val stringReaderMonad = Reader.readerMonad[String]
 
 }
